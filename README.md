@@ -1,13 +1,11 @@
 # sfcc-react-renderer
 
-`sfcc-react-renderer` is an early Salesforce B2C Commerce Cloud cartridge
-experiment for classic React server-side rendering in SFCC Script API.
+`sfcc-react-renderer` is a Salesforce B2C Commerce Cloud cartridge experiment
+for classic React server-side rendering in SFCC Script API.
 
-The repository currently proves that a generated, SFCC-compatible React runtime
-and legacy server renderer can run inside a cartridge controller and render HTML
-with `renderToString`. The broader goal is to turn that proof into an opt-in SSR
-capability that SFRA projects can use for selected React pages, with optional
-browser hydration.
+The repository contains a reusable React runtime cartridge and a reference SFRA
+cartridge that renders TSX page components on the server and hydrates them in the
+browser.
 
 ## Current Contents
 
@@ -31,6 +29,8 @@ SFCC-compatible React runtime generated based on this react fork [`react-for-sfc
 cartridge/react.js
 cartridge/jsx-runtime.js
 cartridge/react-dom-server-legacy-sfcc.js
+cartridge/scripts/react/renderReact.js
+cartridge/scripts/react/serializeProps.js
 ```
 
 The server renderer exposes synchronous legacy APIs, including:
@@ -42,19 +42,61 @@ ReactDOMServer.renderToStaticMarkup(element)
 
 ### `cartridges/app_sfra_react`
 
-This is the reference cartridge. At the moment it contains a single controller:
+This is the reference cartridge. It owns the app-specific page source, Rollup
+build, generated artifacts, manifest, and controller integration.
 
 ```text
 cartridge/controllers/React.js
+cartridge/pages/HomeReact.tsx
+cartridge/pages/generated/HomeReact.js
+cartridge/scripts/react/manifest.js
+cartridge/scripts/react/renderReactPage.js
+cartridge/static/default/js/react/HomeReact.js
+package.json
+rollup.config.mjs
+tsconfig.json
 ```
 
-The `React-Render` route:
+The `React-Render` route renders `HomeReact` through `renderReactPage`, which:
 
-1. Loads `*/cartridge/react`.
-2. Loads `*/cartridge/react-dom-server-legacy-sfcc`.
-3. Creates a simple React element with `React.createElement`.
-4. Renders it with `renderToString`.
-5. Prints the generated HTML response.
+1. Looks up the page in `cartridge/scripts/react/manifest.js`.
+2. Requires the generated server module from `cartridge/pages/generated`.
+3. Renders with the SFCC React runtime from `int_react`.
+4. Serializes props into the hydration root.
+5. Emits a hydration script URL with `dw/web/URLUtils.staticURL()`.
 
-This route is hand-wired proof code. It is not the final controller integration
-pattern.
+Rollup builds:
+
+```text
+cartridge/pages/*.tsx
+  -> cartridge/pages/generated/*.js
+
+virtual hydration entry + cartridge/pages/*.tsx
+  -> cartridge/static/default/js/react/*.js
+```
+
+## Local Build
+
+Install dependencies from the reference cartridge and run the build:
+
+```sh
+cd cartridges/app_sfra_react
+pnpm install
+pnpm run typecheck
+pnpm run build
+```
+
+`pnpm run build` runs Rollup and generates the server-side CommonJS page module
+and browser hydration bundle.
+
+## SFCC Usage
+
+Deploy both cartridges and put `app_sfra_react` before `int_react` in the
+cartridge path. The reference controller exposes:
+
+```text
+React-Render
+```
+
+Open `React-Render` to verify that server HTML is rendered and the browser
+hydration bundle is loaded.
