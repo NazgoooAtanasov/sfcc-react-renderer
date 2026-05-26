@@ -1,19 +1,21 @@
 'use strict';
 
 const server = require('server');
+const renderReactPage = require('*/cartridge/scripts/react/renderReactPage');
 
-server.get('Render', function (req, res, next) {
-    const React = require('*/cartridge/react');
-    const ReactDOMServer = require('*/cartridge/react-dom-server-legacy-sfcc');
+server.get('Render', function (_req, res, next) {
+    const props = {
+        title: 'Hello from React SSR',
+        message: 'Rendered in SFCC Script API and hydrated in the browser',
+        ctaLabel: 'Hydrated action',
+    };
 
-    const component = React.createElement(
-        'div',
-        null,
-        'Hello world'
-    );
-    const html = ReactDOMServer.renderToString(component);
-
-    res.print(html);
+    renderReactPage({
+        res: res,
+        component: 'HomeReact',
+        props: props,
+        hydrate: true,
+    });
     next();
 });
 

@@ -1,0 +1,13 @@
+{
+    "compilerOptions": {
+        "allowSyntheticDefaultImports": true,
+        "isolatedModules": true,
+        "jsx": "react-jsx",
+        "module": "ESNext",
+        "moduleResolution": "bundler",
+        "sourceMap": true,
+        "strict": true,
+        "target": "ES2018"
+    },
+    "include": ["cartridge/pages/**/*.ts", "cartridge/pages/**/*.tsx"]
+}
