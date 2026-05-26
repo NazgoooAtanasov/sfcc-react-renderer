@@ -7,6 +7,18 @@ The repository contains a reusable React runtime cartridge and a reference SFRA
 cartridge that renders TSX page components on the server and hydrates them in the
 browser.
 
+## Requirements
+
+- Salesforce B2C Commerce Cloud / SFCC Script API with the active code version
+  compatibility mode set to `22.7`, or later, for server-side React generated bundles.
+- Server-side generated page bundles must remain SFCC-compatible CommonJS and
+  use the `int_react` runtime modules through SFCC wildcard requires. They must
+  not bundle npm `react` for server execution.
+
+Compatibility mode `22.7` is listed because the server-side React generated
+bundles have only been tested on that version. Earlier compatibility modes might
+work, but they have not been verified.
+
 ## Current Contents
 
 The repo contains two cartridges:
